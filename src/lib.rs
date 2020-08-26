@@ -45,9 +45,9 @@ pub mod ssvm_process {
         pub fn ssvm_process_run() -> u32;
         pub fn ssvm_process_get_exit_code() -> u32;
         pub fn ssvm_process_get_stdout_len() -> u32;
-        pub fn ssvm_process_get_stdout(buf: *mut c_char);
+        pub fn ssvm_process_get_stdout(buf: *mut u8);
         pub fn ssvm_process_get_stderr_len() -> u32;
-        pub fn ssvm_process_get_stderr(buf: *mut c_char);
+        pub fn ssvm_process_get_stderr(buf: *mut u8);
     }
 }
 
@@ -129,12 +129,20 @@ impl Command {
     pub fn output(&mut self) -> Output {
         unsafe {
             let exit_code = ssvm_process::ssvm_process_run();
-            // TODO: Implement getting stdout and stderr.
-            return Output {
+            let stdout_len = ssvm_process::ssvm_process_get_stdout_len();
+            let stderr_len = ssvm_process::ssvm_process_get_stderr_len();
+            let mut stdout_vec: Vec<u8> = vec![0; stdout_len as usize];
+            let mut stderr_vec: Vec<u8> = vec![0; stderr_len as usize];
+            let stdout_ptr = stdout_vec.as_mut_ptr();
+            let stderr_ptr = stderr_vec.as_mut_ptr();
+            ssvm_process::ssvm_process_get_stdout(stdout_ptr);
+            ssvm_process::ssvm_process_get_stderr(stderr_ptr);
+
+            Output {
                 status: exit_code,
-                stdout: [].to_vec(),
-                stderr: [].to_vec(),
-            };
+                stdout: stdout_vec,
+                stderr: stderr_vec,
+            }
         }
     }
 }

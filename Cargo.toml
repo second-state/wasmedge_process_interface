@@ -10,4 +10,6 @@ description = "A Rust library that provides Rust to WebAssembly developers with 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
+[lib]
+name = "rust_process_interface_library"
+path = "src/lib.rs"
