@@ -1,0 +1,13 @@
+[package]
+name = "rust_process_interface_library"
+version = "0.1.0"
+authors = ["yiying <yiying@secondstate.io>"]
+edition = "2018"
+readme = "README.md"
+repository = "https://github.com/second-state/rust_process_interface_library"
+license-file = "LICENSE"
+description = "A Rust library that provides Rust to WebAssembly developers with syntax for running commands functionality"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
