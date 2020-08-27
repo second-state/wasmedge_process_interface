@@ -21,7 +21,7 @@ use std::ffi::CString;
 /// This is returned in a Result by the [`output`] method of a [`Command`].
 pub struct Output {
     /// The status (exit code) of the process.
-    pub status: u32,
+    pub status: i32,
     /// The data that the process wrote to stdout.
     pub stdout: Vec<u8>,
     /// The data that the process wrote to stderr.
@@ -42,8 +42,8 @@ pub mod ssvm_process {
         );
         pub fn ssvm_process_set_stdin(buf: *const c_char, len: u32);
         pub fn ssvm_process_set_timeout(time_ms: u32);
-        pub fn ssvm_process_run() -> u32;
-        pub fn ssvm_process_get_exit_code() -> u32;
+        pub fn ssvm_process_run() -> i32;
+        pub fn ssvm_process_get_exit_code() -> i32;
         pub fn ssvm_process_get_stdout_len() -> u32;
         pub fn ssvm_process_get_stdout(buf: *mut u8);
         pub fn ssvm_process_get_stderr_len() -> u32;
