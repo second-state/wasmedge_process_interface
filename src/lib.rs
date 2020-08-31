@@ -14,6 +14,7 @@
 //! cargo test --lib
 //! ```
 
+use std::collections::HashMap;
 use std::ffi::CString;
 
 /// The output of a finished process.
@@ -51,22 +52,32 @@ pub mod ssvm_process {
     }
 }
 
-pub struct Command {}
+pub struct Command {
+    /// The program name.
+    pub name: String,
+    /// The argument list.
+    pub args_list: Vec<String>,
+    /// The environment map.
+    pub envp_map: HashMap<String, String>,
+    /// The timeout value (milliseconds).
+    pub timeout_val: u32,
+    /// Buffered stdin.
+    pub stdin_str: Vec<u8>,
+}
 
 impl Command {
     pub fn new<S: AsRef<str>>(prog: S) -> Command {
-        let cprog = CString::new(prog.as_ref()).expect("");
-        unsafe {
-            ssvm_process::ssvm_process_set_prog_name(cprog.as_ptr(), cprog.as_bytes().len() as u32);
+        Command {
+            name: String::from(prog.as_ref()),
+            args_list: vec![],
+            envp_map: HashMap::new(),
+            timeout_val: 10000,
+            stdin_str: vec![],
         }
-        Command {}
     }
 
     pub fn arg<S: AsRef<str>>(&mut self, arg: S) -> &mut Command {
-        let carg = CString::new(arg.as_ref()).expect("");
-        unsafe {
-            ssvm_process::ssvm_process_set_arg(carg.as_ptr(), carg.as_bytes().len() as u32);
-        }
+        self.args_list.push(String::from(arg.as_ref()));
         self
     }
 
@@ -81,21 +92,18 @@ impl Command {
         self
     }
 
+    pub fn args_clear(&mut self) -> &mut Command {
+        self.args_list.clear();
+        self
+    }
+
     pub fn env<K, V>(&mut self, key: K, val: V) -> &mut Command
     where
         K: AsRef<str>,
         V: AsRef<str>,
     {
-        let ckey = CString::new(key.as_ref()).expect("");
-        let cval = CString::new(val.as_ref()).expect("");
-        unsafe {
-            ssvm_process::ssvm_process_set_env(
-                ckey.as_ptr(),
-                ckey.as_bytes().len() as u32,
-                cval.as_ptr(),
-                cval.as_bytes().len() as u32,
-            );
-        }
+        self.envp_map
+            .insert(String::from(key.as_ref()), String::from(val.as_ref()));
         self
     }
 
@@ -112,23 +120,53 @@ impl Command {
     }
 
     pub fn stdin<S: AsRef<str>>(&mut self, buf: S) -> &mut Command {
-        let cbuf = CString::new(buf.as_ref()).expect("");
-        unsafe {
-            ssvm_process::ssvm_process_set_stdin(cbuf.as_ptr(), cbuf.as_bytes().len() as u32);
-        }
+        self.stdin_str
+            .extend(CString::new(buf.as_ref()).expect("").as_bytes());
         self
     }
 
     pub fn timeout(&mut self, time: u32) -> &mut Command {
-        unsafe {
-            ssvm_process::ssvm_process_set_timeout(time);
-        }
+        self.timeout_val = time;
         self
     }
 
     pub fn output(&mut self) -> Output {
         unsafe {
+            // Set program name.
+            let cprog = CString::new((&self.name).as_bytes()).expect("");
+            ssvm_process::ssvm_process_set_prog_name(cprog.as_ptr(), cprog.as_bytes().len() as u32);
+
+            // Set arguments.
+            for arg in &self.args_list {
+                let carg = CString::new(arg.as_bytes()).expect("");
+                ssvm_process::ssvm_process_set_arg(carg.as_ptr(), carg.as_bytes().len() as u32);
+            }
+
+            // Set environments.
+            for (key, val) in &self.envp_map {
+                let ckey = CString::new(key.as_bytes()).expect("");
+                let cval = CString::new(val.as_bytes()).expect("");
+                ssvm_process::ssvm_process_set_env(
+                    ckey.as_ptr(),
+                    ckey.as_bytes().len() as u32,
+                    cval.as_ptr(),
+                    cval.as_bytes().len() as u32,
+                );
+            }
+
+            // Set timeout.
+            ssvm_process::ssvm_process_set_timeout(self.timeout_val);
+
+            // Set stdin.
+            ssvm_process::ssvm_process_set_stdin(
+                self.stdin_str.as_ptr() as *const i8,
+                self.stdin_str.len() as u32,
+            );
+
+            // Run.
             let exit_code = ssvm_process::ssvm_process_run();
+
+            // Get outputs.
             let stdout_len = ssvm_process::ssvm_process_get_stdout_len();
             let stderr_len = ssvm_process::ssvm_process_get_stderr_len();
             let mut stdout_vec: Vec<u8> = vec![0; stdout_len as usize];
