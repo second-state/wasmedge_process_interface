@@ -184,3 +184,90 @@ impl Command {
         }
     }
 }
+
+// Test
+// Please use the following command so that the print statements are shown during testing
+// cargo test -- --nocapture
+//
+
+#[cfg(test)]
+mod tests {
+    use super::Command;
+    #[test]
+    fn test_arg() {
+        let mut cmd = Command::new("rusttest");
+        cmd.arg("val1").arg("val2");
+        assert_eq!(cmd.args_list[0], "val1");
+        assert_eq!(cmd.args_list[1], "val2");
+    }
+    #[test]
+    fn test_args() {
+        let mut cmd = Command::new("rusttest");
+        cmd.args(&["val1", "val2"]);
+        assert_eq!(cmd.args_list[0], "val1");
+        assert_eq!(cmd.args_list[1], "val2");
+    }
+    #[test]
+    fn test_arg_args() {
+        let mut cmd = Command::new("rusttest");
+        cmd.arg("val1").arg("val2").args(&["val3", "val4"]);
+        assert_eq!(cmd.args_list[0], "val1");
+        assert_eq!(cmd.args_list[1], "val2");
+        assert_eq!(cmd.args_list[2], "val3");
+        assert_eq!(cmd.args_list[3], "val4");
+    }
+    #[test]
+    fn test_args_clear() {
+        let mut cmd = Command::new("rusttest");
+        cmd.arg("val1").arg("val2").args(&["val3", "val4"]);
+        cmd.args_clear();
+        assert_eq!(cmd.args_list.len(), 0);
+    }
+    #[test]
+    fn test_env() {
+        let mut cmd = Command::new("rusttest");
+        cmd.env("ENV1", "VALUE1").env("ENV2", "VALUE2");
+        assert_eq!(cmd.envp_map["ENV1"], "VALUE1");
+        assert_eq!(cmd.envp_map["ENV2"], "VALUE2");
+    }
+    #[test]
+    fn test_envs() {
+        use std::collections::HashMap;
+        let mut cmd = Command::new("rusttest");
+        let mut hash: HashMap<String, String> = HashMap::new();
+        hash.insert(String::from("ENV1"), String::from("VALUE1"));
+        hash.insert(String::from("ENV2"), String::from("VALUE2"));
+        cmd.envs(hash);
+        assert_eq!(cmd.envp_map["ENV1"], "VALUE1");
+        assert_eq!(cmd.envp_map["ENV2"], "VALUE2");
+    }
+    #[test]
+    fn test_env_envs() {
+        use std::collections::HashMap;
+        let mut cmd = Command::new("rusttest");
+        let mut hash: HashMap<String, String> = HashMap::new();
+        hash.insert(String::from("ENV1"), String::from("VALUE1"));
+        hash.insert(String::from("ENV2"), String::from("VALUE2"));
+        cmd.env("ENV3", "VALUE3").env("ENV4", "VALUE4").envs(hash);
+        assert_eq!(cmd.envp_map["ENV1"], "VALUE1");
+        assert_eq!(cmd.envp_map["ENV2"], "VALUE2");
+        assert_eq!(cmd.envp_map["ENV3"], "VALUE3");
+        assert_eq!(cmd.envp_map["ENV4"], "VALUE4");
+    }
+    #[test]
+    fn test_stdin() {
+        use std::str;
+        let mut cmd = Command::new("rusttest");
+        cmd.stdin("hello").stdin(" ").stdin("world");
+        assert_eq!(
+            str::from_utf8(&cmd.stdin_str).expect("ERROR"),
+            "hello world"
+        );
+    }
+    #[test]
+    fn test_timeout() {
+        let mut cmd = Command::new("rusttest");
+        cmd.timeout(666666);
+        assert_eq!(cmd.timeout_val, 666666);
+    }
+}
