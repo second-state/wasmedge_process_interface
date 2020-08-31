@@ -34,14 +34,14 @@ pub mod ssvm_process {
     #[link(wasm_import_module = "ssvm_process")]
     extern "C" {
         pub fn ssvm_process_set_prog_name(name: *const c_char, len: u32);
-        pub fn ssvm_process_set_arg(arg: *const c_char, len: u32);
-        pub fn ssvm_process_set_env(
+        pub fn ssvm_process_add_arg(arg: *const c_char, len: u32);
+        pub fn ssvm_process_add_env(
             env: *const c_char,
             env_len: u32,
             val: *const c_char,
             val_len: u32,
         );
-        pub fn ssvm_process_set_stdin(buf: *const c_char, len: u32);
+        pub fn ssvm_process_add_stdin(buf: *const c_char, len: u32);
         pub fn ssvm_process_set_timeout(time_ms: u32);
         pub fn ssvm_process_run() -> i32;
         pub fn ssvm_process_get_exit_code() -> i32;
@@ -139,14 +139,14 @@ impl Command {
             // Set arguments.
             for arg in &self.args_list {
                 let carg = CString::new(arg.as_bytes()).expect("");
-                ssvm_process::ssvm_process_set_arg(carg.as_ptr(), carg.as_bytes().len() as u32);
+                ssvm_process::ssvm_process_add_arg(carg.as_ptr(), carg.as_bytes().len() as u32);
             }
 
             // Set environments.
             for (key, val) in &self.envp_map {
                 let ckey = CString::new(key.as_bytes()).expect("");
                 let cval = CString::new(val.as_bytes()).expect("");
-                ssvm_process::ssvm_process_set_env(
+                ssvm_process::ssvm_process_add_env(
                     ckey.as_ptr(),
                     ckey.as_bytes().len() as u32,
                     cval.as_ptr(),
@@ -158,7 +158,7 @@ impl Command {
             ssvm_process::ssvm_process_set_timeout(self.timeout_val);
 
             // Set stdin.
-            ssvm_process::ssvm_process_set_stdin(
+            ssvm_process::ssvm_process_add_stdin(
                 self.stdin_str.as_ptr() as *const i8,
                 self.stdin_str.len() as u32,
             );
