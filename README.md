@@ -6,4 +6,96 @@ From a high-level overview here, we are essentially building a process interface
 
 # How to use this library
 
+## Rust dependency
+
+Developers will add the [`rust_process_interface_library` crate](https://crates.io/crates/rust_storage_interface_library) as a dependency to their `Rust -> Wasm` applications. For example, add the following line to the application's `Cargo.toml` file.
+```
+[dependencies]
+rust_process_interface_library = "^0.1"
+```
+
+Developers will bring the `Command` modules of `rust_process_interface_library` into scope within their `Rust -> Wasm` application's code. For example, adding the following code to the top of their `main.rs` file. 
+```
+use rust_process_interface_library::Command;
+```
+
+## Execute commands with program name
+
+Developers can then use syntax, such as the following, to execute commands such as using [`std::process::Command`](https://doc.rust-lang.org/std/process/struct.Command.html). After compilation, the output target Wasm file will contain imports of host functions about running external commands.
+
+### Create a Command object
+```rust
+let mut cmd = Command::new("ls");
+```
+### Append arguments
+```rust
+let mut cmd = Command::new("ls");
+cmd.arg("-al");
+```
+Or the following:
+```rust
+let cmd = Command::new("ls").arg("-al");
+```
+Or the following:
+```rust
+let cmd = Command::new("ls").arg("-alF").arg("..");
+```
+Or the following:
+```rust
+let cmd = Command::new("ls").args(&["-alF", ".."]);
+```
+### Append environment variables
+```rust
+let mut cmd = Command::new("printenv").arg("ONE").env("ONE", "1");
+```
+Or the following:
+```rust
+use std::collections::HashMap;
+let mut cmd = Command::new("rusttest");
+let mut hash: HashMap<String, String> = HashMap::new();
+hash.insert(String::from("ENV1"), String::from("VALUE1"));
+hash.insert(String::from("ENV2"), String::from("VALUE2"));
+let mut cmd = Command::new("printenv").arg("ENV1").envs(hash);
+```
+### Append `stdin`
+```rust
+let mut cmd = Command::new("python3").stdin("print(\"HELLO PYTHON\")");
+```
+Or the following:
+```rust
+// Consider about the `\n` charactor in stdin strings.
+let mut cmd = Command::new("python3").stdin("import time\n").stdin("print(time.time())");
+```
+### Specify execution timeout
+```rust
+// Timeout values are in milliseconds.
+let mut cmd = Command::new("python3")
+              .stdin("from time import sleep\n")
+              .stdin("print('PYTHON start sleep 2s', flush=True)\n")
+              .stdin("sleep(2)\n")
+              .stdin("print('PYTHON end sleep 2s', flush=True)\n")
+              .timeout(1000);
+```
+### Execution and get outputs
+```rust
+let out = Command::new("python3")
+          .stdin("from time import sleep\n")
+          .stdin("import sys\n")
+          .stdin("print('stdout: PYTHON start sleep 2s', flush=True)\n")
+          .stdin("print('stderr: PYTHON start sleep 2s', file=sys.stderr, flush=True)\n")
+          .stdin("sleep(2)\n")
+          .stdin("print('stdout: PYTHON end sleep 2s', flush=True)\n")
+          .stdin("print('stderr: PYTHON end sleep 2s', file=sys.stderr, flush=True)\n")
+          .timeout(1000)
+          .output();
+
+println!(" return code : {}", out.status);
+println!(" stdout :");
+print!("{}", str::from_utf8(&out.stdout).expect("GET STDOUT ERR"));
+println!(" stderr :");
+print!("{}", str::from_utf8(&out.stderr).expect("GET STDERR ERR"));
+```
+
 # Crates.io
+
+The official crate is available at [crates.io](https://crates.io/crates/rust_process_interface_library).
