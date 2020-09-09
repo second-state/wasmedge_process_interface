@@ -15,6 +15,7 @@
 //! ```
 
 use std::collections::HashMap;
+use std::env;
 use std::ffi::CString;
 
 /// The output of a finished process.
@@ -67,10 +68,14 @@ pub struct Command {
 
 impl Command {
     pub fn new<S: AsRef<str>>(prog: S) -> Command {
+        let mut envp: HashMap<String, String> = HashMap::new();
+        for (key, value) in env::vars() {
+            envp.insert(key, value);
+        }
         Command {
             name: String::from(prog.as_ref()),
             args_list: vec![],
-            envp_map: HashMap::new(),
+            envp_map: envp,
             timeout_val: 10000,
             stdin_str: vec![],
         }
