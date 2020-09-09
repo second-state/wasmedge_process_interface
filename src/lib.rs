@@ -125,6 +125,11 @@ impl Command {
         self
     }
 
+    pub fn stdin_u8(&mut self, buf: u8) -> &mut Command {
+        self.stdin_str.push(buf);
+        self
+    }
+
     pub fn timeout(&mut self, time: u32) -> &mut Command {
         self.timeout_val = time;
         self
@@ -263,6 +268,12 @@ mod tests {
             str::from_utf8(&cmd.stdin_str).expect("ERROR"),
             "hello world"
         );
+    }
+    #[test]
+    fn test_stdin_u8() {
+        let mut cmd = Command::new("rusttest");
+        cmd.stdin("Test").stdin_u8(0).stdin_u8(100).stdin_u8(255);
+        assert_eq!(cmd.stdin_str, vec![84, 101, 115, 116, 0, 100, 255]);
     }
     #[test]
     fn test_timeout() {

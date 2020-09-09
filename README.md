@@ -11,7 +11,7 @@ From a high-level overview here, we are essentially building a process interface
 Developers will add the [`rust_process_interface_library` crate](https://crates.io/crates/rust_storage_interface_library) as a dependency to their `Rust -> Wasm` applications. For example, add the following line to the application's `Cargo.toml` file.
 ```
 [dependencies]
-rust_process_interface_library = "^0.1"
+rust_process_interface_library = "^0.1.1"
 ```
 
 Developers will bring the `Command` modules of `rust_process_interface_library` into scope within their `Rust -> Wasm` application's code. For example, adding the following code to the top of their `main.rs` file. 
