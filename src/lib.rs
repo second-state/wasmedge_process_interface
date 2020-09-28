@@ -135,6 +135,11 @@ impl Command {
         self
     }
 
+    pub fn stdin_u8vec<S: AsRef<[u8]>>(&mut self, buf: S) -> &mut Command {
+        self.stdin_str.extend(buf.as_ref());
+        self
+    }
+
     pub fn timeout(&mut self, time: u32) -> &mut Command {
         self.timeout_val = time;
         self
@@ -279,6 +284,17 @@ mod tests {
         let mut cmd = Command::new("rusttest");
         cmd.stdin("Test").stdin_u8(0).stdin_u8(100).stdin_u8(255);
         assert_eq!(cmd.stdin_str, vec![84, 101, 115, 116, 0, 100, 255]);
+    }
+    #[test]
+    fn test_stdin_u8vec() {
+        let mut cmd = Command::new("rusttest");
+        let v = vec![5, 6, 7];
+        cmd.stdin("Test")
+            .stdin_u8vec(&v)
+            .stdin_u8(100)
+            .stdin_u8(255);
+        assert_eq!(cmd.stdin_str, vec![84, 101, 115, 116, 5, 6, 7, 100, 255]);
+        assert_eq!(v, vec![5, 6, 7]);
     }
     #[test]
     fn test_timeout() {

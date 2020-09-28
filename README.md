@@ -11,7 +11,7 @@ From a high-level overview here, we are essentially building a process interface
 Developers will add the [`rust_process_interface_library` crate](https://crates.io/crates/rust_storage_interface_library) as a dependency to their `Rust -> Wasm` applications. For example, add the following line to the application's `Cargo.toml` file.
 ```
 [dependencies]
-rust_process_interface_library = "^0.1.1"
+rust_process_interface_library = "^0.1.3"
 ```
 
 Developers will bring the `Command` modules of `rust_process_interface_library` into scope within their `Rust -> Wasm` application's code. For example, adding the following code to the top of their `main.rs` file. 
@@ -77,6 +77,9 @@ let mut cmd = Command::new("python3")
               .timeout(1000);
 ```
 ### Execution and get outputs
+
+Please remember to check for the return status of the child process.
+
 ```rust
 let out = Command::new("python3")
           .stdin("from time import sleep\n")
