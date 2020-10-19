@@ -1,4 +1,4 @@
-# Rust Process Interface Library
+# SSVM Process Interface
 
 A Rust library that provides Rust to WebAssembly developers with syntax for running commands functionality when their Wasm is being executed on [SecondState's SSVM](https://github.com/second-state/SSVM).
 
@@ -8,15 +8,15 @@ From a high-level overview here, we are essentially building a process interface
 
 ## Rust dependency
 
-Developers will add the [`rust_process_interface_library` crate](https://crates.io/crates/rust_storage_interface_library) as a dependency to their `Rust -> Wasm` applications. For example, add the following line to the application's `Cargo.toml` file.
+Developers will add the [`ssvm_process_interface` crate](https://crates.io/crates/ssvm_process_interface) as a dependency to their `Rust -> Wasm` applications. For example, add the following line to the application's `Cargo.toml` file.
 ```
 [dependencies]
-rust_process_interface_library = "^0.1.3"
+ssvm_process_interface = "^0.1.3"
 ```
 
-Developers will bring the `Command` modules of `rust_process_interface_library` into scope within their `Rust -> Wasm` application's code. For example, adding the following code to the top of their `main.rs` file. 
+Developers will bring the `Command` modules of `ssvm_process_interface` into scope within their `Rust -> Wasm` application's code. For example, adding the following code to the top of their `main.rs` file. 
 ```
-use rust_process_interface_library::Command;
+use ssvm_process_interface::Command;
 ```
 
 ## Execute commands with program name
@@ -101,4 +101,4 @@ print!("{}", str::from_utf8(&out.stderr).expect("GET STDERR ERR"));
 
 # Crates.io
 
-The official crate is available at [crates.io](https://crates.io/crates/rust_process_interface_library).
+The official crate is available at [crates.io](https://crates.io/crates/ssvm_process_interface).

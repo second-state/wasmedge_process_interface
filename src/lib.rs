@@ -2,12 +2,12 @@
 //! # Adding this as a dependency
 //! ```rust, ignore
 //! [dependencies]
-//! rust_process_interface_library = "^0.1"
+//! ssvm_process_interface = "^0.1.3"
 //! ```
 //!
 //! # Bringing this into scope
 //! ```rust, ignore
-//! use rust_process_interface_library::Command;
+//! use ssvm_process_interface::Command;
 //! ```
 //! # Tests
 //! ```bash, ignore
