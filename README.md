@@ -1,3 +1,7 @@
+# This Repository Is Deprecated
+
+This library has been renamed and moved to `wasmedge_process_interface`. Please follow the resulting [new wasmedge_process_interface](https://crates.io/crates/wasmedge_process_interface) crate for further development. No further development will take place in this repository.
+
 # SSVM Process Interface
 
 A Rust library that provides Rust to WebAssembly developers with syntax for running commands functionality when their Wasm is being executed on [SecondState's SSVM](https://github.com/second-state/SSVM).
