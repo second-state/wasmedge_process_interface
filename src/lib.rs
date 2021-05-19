@@ -2,12 +2,12 @@
 //! # Adding this as a dependency
 //! ```rust, ignore
 //! [dependencies]
-//! ssvm_process_interface = "^0.1.3"
+//! wasmedge_process_interface = "^0.2.0"
 //! ```
 //!
 //! # Bringing this into scope
 //! ```rust, ignore
-//! use ssvm_process_interface::Command;
+//! use wasmedge_process_interface::Command;
 //! ```
 //! # Tests
 //! ```bash, ignore
@@ -30,26 +30,26 @@ pub struct Output {
     pub stderr: Vec<u8>,
 }
 
-pub mod ssvm_process {
+pub mod wasmedge_process {
     use std::os::raw::c_char;
-    #[link(wasm_import_module = "ssvm_process")]
+    #[link(wasm_import_module = "wasmedge_process")]
     extern "C" {
-        pub fn ssvm_process_set_prog_name(name: *const c_char, len: u32);
-        pub fn ssvm_process_add_arg(arg: *const c_char, len: u32);
-        pub fn ssvm_process_add_env(
+        pub fn wasmedge_process_set_prog_name(name: *const c_char, len: u32);
+        pub fn wasmedge_process_add_arg(arg: *const c_char, len: u32);
+        pub fn wasmedge_process_add_env(
             env: *const c_char,
             env_len: u32,
             val: *const c_char,
             val_len: u32,
         );
-        pub fn ssvm_process_add_stdin(buf: *const c_char, len: u32);
-        pub fn ssvm_process_set_timeout(time_ms: u32);
-        pub fn ssvm_process_run() -> i32;
-        pub fn ssvm_process_get_exit_code() -> i32;
-        pub fn ssvm_process_get_stdout_len() -> u32;
-        pub fn ssvm_process_get_stdout(buf: *mut u8);
-        pub fn ssvm_process_get_stderr_len() -> u32;
-        pub fn ssvm_process_get_stderr(buf: *mut u8);
+        pub fn wasmedge_process_add_stdin(buf: *const c_char, len: u32);
+        pub fn wasmedge_process_set_timeout(time_ms: u32);
+        pub fn wasmedge_process_run() -> i32;
+        pub fn wasmedge_process_get_exit_code() -> i32;
+        pub fn wasmedge_process_get_stdout_len() -> u32;
+        pub fn wasmedge_process_get_stdout(buf: *mut u8);
+        pub fn wasmedge_process_get_stderr_len() -> u32;
+        pub fn wasmedge_process_get_stderr(buf: *mut u8);
     }
 }
 
@@ -149,19 +149,25 @@ impl Command {
         unsafe {
             // Set program name.
             let cprog = CString::new((&self.name).as_bytes()).expect("");
-            ssvm_process::ssvm_process_set_prog_name(cprog.as_ptr(), cprog.as_bytes().len() as u32);
+            wasmedge_process::wasmedge_process_set_prog_name(
+                cprog.as_ptr(),
+                cprog.as_bytes().len() as u32,
+            );
 
             // Set arguments.
             for arg in &self.args_list {
                 let carg = CString::new(arg.as_bytes()).expect("");
-                ssvm_process::ssvm_process_add_arg(carg.as_ptr(), carg.as_bytes().len() as u32);
+                wasmedge_process::wasmedge_process_add_arg(
+                    carg.as_ptr(),
+                    carg.as_bytes().len() as u32,
+                );
             }
 
             // Set environments.
             for (key, val) in &self.envp_map {
                 let ckey = CString::new(key.as_bytes()).expect("");
                 let cval = CString::new(val.as_bytes()).expect("");
-                ssvm_process::ssvm_process_add_env(
+                wasmedge_process::wasmedge_process_add_env(
                     ckey.as_ptr(),
                     ckey.as_bytes().len() as u32,
                     cval.as_ptr(),
@@ -170,26 +176,26 @@ impl Command {
             }
 
             // Set timeout.
-            ssvm_process::ssvm_process_set_timeout(self.timeout_val);
+            wasmedge_process::wasmedge_process_set_timeout(self.timeout_val);
 
             // Set stdin.
-            ssvm_process::ssvm_process_add_stdin(
+            wasmedge_process::wasmedge_process_add_stdin(
                 self.stdin_str.as_ptr() as *const i8,
                 self.stdin_str.len() as u32,
             );
 
             // Run.
-            let exit_code = ssvm_process::ssvm_process_run();
+            let exit_code = wasmedge_process::wasmedge_process_run();
 
             // Get outputs.
-            let stdout_len = ssvm_process::ssvm_process_get_stdout_len();
-            let stderr_len = ssvm_process::ssvm_process_get_stderr_len();
+            let stdout_len = wasmedge_process::wasmedge_process_get_stdout_len();
+            let stderr_len = wasmedge_process::wasmedge_process_get_stderr_len();
             let mut stdout_vec: Vec<u8> = vec![0; stdout_len as usize];
             let mut stderr_vec: Vec<u8> = vec![0; stderr_len as usize];
             let stdout_ptr = stdout_vec.as_mut_ptr();
             let stderr_ptr = stderr_vec.as_mut_ptr();
-            ssvm_process::ssvm_process_get_stdout(stdout_ptr);
-            ssvm_process::ssvm_process_get_stderr(stderr_ptr);
+            wasmedge_process::wasmedge_process_get_stdout(stdout_ptr);
+            wasmedge_process::wasmedge_process_get_stderr(stderr_ptr);
 
             Output {
                 status: exit_code,
