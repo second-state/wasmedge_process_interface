@@ -11,7 +11,7 @@ From a high-level overview here, we are essentially building a process interface
 Developers will add the [`wasmedge_process_interface` crate](https://crates.io/crates/wasmedge_process_interface) as a dependency to their `Rust -> Wasm` applications. For example, add the following line to the application's `Cargo.toml` file.
 ```
 [dependencies]
-wasmedge_process_interface = "^0.2.0"
+wasmedge_process_interface = "^0.2.1"
 ```
 
 Developers will bring the `Command` modules of `wasmedge_process_interface` into scope within their `Rust -> Wasm` application's code. For example, adding the following code to the top of their `main.rs` file. 
