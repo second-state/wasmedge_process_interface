@@ -2,7 +2,7 @@
 //! # Adding this as a dependency
 //! ```rust, ignore
 //! [dependencies]
-//! wasmedge_process_interface = "^0.2.0"
+//! wasmedge_process_interface = "^0.2.1"
 //! ```
 //!
 //! # Bringing this into scope
@@ -146,27 +146,31 @@ impl Command {
     }
 
     pub fn output(&mut self) -> Output {
+        let cprog = CString::new((&self.name).as_bytes()).expect("");
+        // Set program name.
         unsafe {
-            // Set program name.
-            let cprog = CString::new((&self.name).as_bytes()).expect("");
             wasmedge_process::wasmedge_process_set_prog_name(
                 cprog.as_ptr(),
                 cprog.as_bytes().len() as u32,
             );
+        }
 
-            // Set arguments.
-            for arg in &self.args_list {
-                let carg = CString::new(arg.as_bytes()).expect("");
+        // Set arguments.
+        for arg in &self.args_list {
+            let carg = CString::new(arg.as_bytes()).expect("");
+            unsafe {
                 wasmedge_process::wasmedge_process_add_arg(
                     carg.as_ptr(),
                     carg.as_bytes().len() as u32,
                 );
             }
+        }
 
-            // Set environments.
-            for (key, val) in &self.envp_map {
-                let ckey = CString::new(key.as_bytes()).expect("");
-                let cval = CString::new(val.as_bytes()).expect("");
+        // Set environments.
+        for (key, val) in &self.envp_map {
+            let ckey = CString::new(key.as_bytes()).expect("");
+            let cval = CString::new(val.as_bytes()).expect("");
+            unsafe {
                 wasmedge_process::wasmedge_process_add_env(
                     ckey.as_ptr(),
                     ckey.as_bytes().len() as u32,
@@ -174,7 +178,12 @@ impl Command {
                     cval.as_bytes().len() as u32,
                 );
             }
+        }
 
+        let exit_code: i32;
+        let stdout_len: u32;
+        let stderr_len: u32;
+        unsafe {
             // Set timeout.
             wasmedge_process::wasmedge_process_set_timeout(self.timeout_val);
 
@@ -185,23 +194,25 @@ impl Command {
             );
 
             // Run.
-            let exit_code = wasmedge_process::wasmedge_process_run();
+            exit_code = wasmedge_process::wasmedge_process_run();
 
             // Get outputs.
-            let stdout_len = wasmedge_process::wasmedge_process_get_stdout_len();
-            let stderr_len = wasmedge_process::wasmedge_process_get_stderr_len();
-            let mut stdout_vec: Vec<u8> = vec![0; stdout_len as usize];
-            let mut stderr_vec: Vec<u8> = vec![0; stderr_len as usize];
-            let stdout_ptr = stdout_vec.as_mut_ptr();
-            let stderr_ptr = stderr_vec.as_mut_ptr();
+            stdout_len = wasmedge_process::wasmedge_process_get_stdout_len();
+            stderr_len = wasmedge_process::wasmedge_process_get_stderr_len();
+        }
+        let mut stdout_vec: Vec<u8> = vec![0; stdout_len as usize];
+        let mut stderr_vec: Vec<u8> = vec![0; stderr_len as usize];
+        let stdout_ptr = stdout_vec.as_mut_ptr();
+        let stderr_ptr = stderr_vec.as_mut_ptr();
+        unsafe {
             wasmedge_process::wasmedge_process_get_stdout(stdout_ptr);
             wasmedge_process::wasmedge_process_get_stderr(stderr_ptr);
+        }
 
-            Output {
-                status: exit_code,
-                stdout: stdout_vec,
-                stderr: stderr_vec,
-            }
+        Output {
+            status: exit_code,
+            stdout: stdout_vec,
+            stderr: stderr_vec,
         }
     }
 }
